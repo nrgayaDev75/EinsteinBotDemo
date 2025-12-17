@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Einstein Bot</title>
+</head>
+<body>
+
+    <script>
+        const SALESFORCE_SITE_URL = 'https://energy-agility-7121--partial.sandbox.my.site.com'; 
+        const MESSAGING_DEPLOYMENT_PATH = '/ESWBlueFoxFinanceWebChann1765841281185';
+        const ORG_ID = '00D9r000007DnWj';
+        const CHANNEL_NAME = 'BlueFoxFinanceWebChannel'; 
+    </script>
+    
+    <script type='text/javascript'>
+        // This function holds the contents of your auto-generated snippet's first script block
+        function initEmbeddedMessaging() {
+            try {
+                // Check if the bootstrap object is available and chat is enabled
+                if (!window.embeddedservice_bootstrap || !window.isChatEnabled) {
+                     console.log('Embedded Messaging not initializing: Chat disabled by custom setting or bootstrap not loaded.');
+                     return; 
+                }
+                
+                embeddedservice_bootstrap.settings.language = 'en_US'; 
+
+                // Use the configured constants for cleaner code
+                embeddedservice_bootstrap.init(
+                    ORG_ID,
+                    CHANNEL_NAME,
+                    SALESFORCE_SITE_URL + MESSAGING_DEPLOYMENT_PATH,
+                    {
+                        
+                        scrt2URL: 'https://energy-agility-7121--partial.sandbox.my.salesforce-scrt.com' 
+                    }
+                );
+            } catch (err) {
+                console.error('Error in initEmbeddedMessaging: ', err);
+            }
+        };
+        
+        // Function to dynamically load the second script 
+           function loadMessagingBootstrap() {
+            console.log('Loading Embedded Messaging Bootstrap...');
+            var s = document.createElement('script');
+            s.setAttribute('type', 'text/javascript');
+            
+            // Construct the source URL dynamically
+            s.setAttribute('src', SALESFORCE_SITE_URL + MESSAGING_DEPLOYMENT_PATH + '/assets/js/bootstrap.min.js');
+            
+            // Set the onload event to call our initialization function AFTER the file loads
+            s.onload = initEmbeddedMessaging; 
+            
+            document.body.appendChild(s);
+        }
+    </script>
+
+    <script type='text/javascript'>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Construct the URL for the Apex REST service
+       
+            const chatStatusUrl = `${SALESFORCE_SITE_URL}/services/apexrest/BotStatus`;
+            
+            // Fetch the Custom Setting value from Salesforce
+            fetch(chatStatusUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json(); 
+                })
+                .then(isChatEnabledFromSF => {
+                    // Set the global flag based on the Custom Setting value
+                    window.isChatEnabled = isChatEnabledFromSF;
+
+                    console.log(`Chat enabled status from Salesforce: ${window.isChatEnabled}`);
+                    
+                    // 3. Load the Salesforce chat scripts ONLY if enabled
+                    if (window.isChatEnabled) {
+                         loadMessagingBootstrap();
+                    } else {
+                        // Messaging is disabled, do nothing (widget will not appear)
+                        console.log('Embedded Messaging initialization skipped due to Custom Setting.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Could not fetch chat status from Salesforce. Defaulting to OFF.', error);
+                    // Default to OFF if the configuration call fails
+                    window.isChatEnabled = false; 
+                });
+        });
+    </script>
+</body>
+</html>
